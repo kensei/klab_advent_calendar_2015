@@ -1,5 +1,7 @@
 ﻿using UnityEngine;
+using System;
 using System.Collections;
+using System.Runtime.InteropServices;
 
 public class SampleClientObject : MonoBehaviour
 {
@@ -19,9 +21,11 @@ public class SampleClientObject : MonoBehaviour
 	[DllImport("__Internal")]
 	private static extern int _SampleClientPlugin_Destroy(IntPtr instance);
 	[DllImport("__Internal")]
-	private static extern void _SampleClientPlugin_SetLocalNotificationInterval(IntPtr instance, int id, string title, string msg, int interval);
+	private static extern void _SampleClientPlugin_SetLocalNotification(IntPtr instance, int id, string title, string msg, int interval);
 	[DllImport("__Internal")]
 	private static extern void _SampleClientPlugin_CancelLocalNotification(IntPtr instance, int id);
+	[DllImport("__Internal")]
+	private static extern void _ios8OverRegisterLocalNotificaton();
 #endif
 
 	#endregion
@@ -32,6 +36,7 @@ public class SampleClientObject : MonoBehaviour
 	{
 #if UNITY_EDITOR || UNITY_STANDALONE_OSX
 #elif UNITY_IPHONE
+		_ios8OverRegisterLocalNotificaton();
 		sampleClient = _SampleClientPlugin_Init(name);
 #elif UNITY_ANDROID
 		sampleClient = new AndroidJavaObject("com.klab.ap_refresh_localpush_sample_android.SampleClientPlugin");
@@ -46,7 +51,7 @@ public class SampleClientObject : MonoBehaviour
 #elif UNITY_IPHONE
 		if (sampleClient == IntPtr.Zero)
 			return;
-		_SampleClientPlugin_SetLocalNotificationInterval(sampleClient, id, title, msg, interval);
+		_SampleClientPlugin_SetLocalNotification(sampleClient, id, title, msg, interval);
 #elif UNITY_ANDROID
 		if(sampleClient == null)
 			return;
