@@ -49,7 +49,9 @@ public class SampleClientPlugin {
         // set alarm time
         Calendar calendar = Calendar.getInstance();
         calendar.setTimeInMillis(System.currentTimeMillis());
+        Log.i(TAG, "now:" + calendar.toString());
         calendar.add(Calendar.SECOND, secAfter);
+        Log.i(TAG, "alarm:" + calendar.toString());
 
         // alarm set
         PendingIntent sender = PendingIntent.getBroadcast(context,  notificationId, intent, PendingIntent.FLAG_CANCEL_CURRENT);

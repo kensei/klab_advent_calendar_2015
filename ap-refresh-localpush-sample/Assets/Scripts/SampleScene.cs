@@ -10,9 +10,12 @@ public class SampleScene : MonoBehaviour
 	readonly string PREFS_KEY_AP_UPDATE_DATETIME = "AP_UPDATE_DATETIME";
 	readonly int AP_MAX = 5;
 	readonly int AP_REFRESH_INTERVAL = 20;
+	readonly int LOCAL_NOTIFICATION_ID = 1;
 
 	int apCount;
 	float apUpdateTime;
+
+	SampleClientObject clientObject;
 
 	#endregion
 
@@ -20,29 +23,21 @@ public class SampleScene : MonoBehaviour
 
 	void Awake()
 	{
-		Application.targetFrameRate = 10;
 		apCount = PlayerPrefs.GetInt(PREFS_KEY_AP_COUNT, AP_MAX);
 		apUpdateTime = Time.realtimeSinceStartup;
+		clientObject = gameObject.AddComponent<SampleClientObject>();
+		clientObject.Initialize();
 	}
 
 	void Start()
 	{
 		if (apCount >= AP_MAX)
 			return;
+		
 		if (!PlayerPrefs.HasKey(PREFS_KEY_AP_UPDATE_DATETIME))
 			return;
 		
-		var lastAwakeInterval = DateTimeOffset.Now - DateTimeOffset.Parse(PlayerPrefs.GetString(PREFS_KEY_AP_UPDATE_DATETIME));
-		if (lastAwakeInterval.TotalSeconds > GetApMaxSec(apCount, apUpdateTime)) {
-			apCount = AP_MAX;
-			apUpdateTime = Time.realtimeSinceStartup;
-			UpdateAp(AP_MAX);
-			UpdateApUpdateDatetime();
-		}
-		else
-		{
-			apUpdateTime -= (float) lastAwakeInterval.TotalSeconds;
-		}
+		RefreshApUpdateDatetime();
 	}
 
 	void Update()
@@ -75,6 +70,18 @@ public class SampleScene : MonoBehaviour
 		}
 	}
 
+	void OnApplicationPause(bool pauseStatus)
+	{
+		if (pauseStatus)
+		{
+			UpdateApUpdateDatetime();
+		}
+		else
+		{
+			RefreshApUpdateDatetime();
+		}
+	}
+
 	#endregion
 
 	#region Private Method
@@ -83,7 +90,8 @@ public class SampleScene : MonoBehaviour
 	{
 		Debug.Log("Use AP:" + apCount);
 		apCount--;
-		apUpdateTime = Time.realtimeSinceStartup;
+
+		clientObject.SetLocalNotificationInterval(LOCAL_NOTIFICATION_ID, "klab", "sample", GetApMaxSec(apCount, apUpdateTime, true));
 
 		UpdateAp(apCount);
 		UpdateApUpdateDatetime();
@@ -94,7 +102,10 @@ public class SampleScene : MonoBehaviour
 		Debug.Log("RecoverAp:" + apCount);
 
 		if (apCount >= AP_MAX)
+		{
+			clientObject.CancelLocalNotification(LOCAL_NOTIFICATION_ID);
 			return;
+		}
 		
 		apCount++;
 		apUpdateTime = Time.realtimeSinceStartup;
@@ -102,7 +113,7 @@ public class SampleScene : MonoBehaviour
 		UpdateApUpdateDatetime();
 	}
 
-	int GetApMaxSec(int ap, float updateTime)
+	int GetApMaxSec(int ap, float updateTime, bool debug = false)
 	{
 		if (ap >= AP_MAX)
 			return 0;
@@ -110,6 +121,12 @@ public class SampleScene : MonoBehaviour
 		var apDiff = AP_MAX - ap;
 		var updateTimeSpan = Time.realtimeSinceStartup - updateTime;
 		var restTime = Mathf.CeilToInt((AP_REFRESH_INTERVAL * apDiff) - Mathf.Abs(updateTimeSpan));
+
+		if (debug)
+		{
+			Debug.Log("updateTimeSpan:" + updateTimeSpan);
+			Debug.Log("restTime:" + restTime);
+		}
 
 		return (restTime > 0) ? restTime : 0;
 	}
@@ -122,6 +139,22 @@ public class SampleScene : MonoBehaviour
 	void UpdateApUpdateDatetime()
 	{
 		PlayerPrefs.SetString(PREFS_KEY_AP_UPDATE_DATETIME, DateTimeOffset.Now.ToString ("yyyy/MM/dd HH:mm:ss"));
+	}
+
+	void RefreshApUpdateDatetime()
+	{
+		var lastAwakeInterval = DateTimeOffset.Now - DateTimeOffset.Parse(PlayerPrefs.GetString(PREFS_KEY_AP_UPDATE_DATETIME));
+		if (lastAwakeInterval.TotalSeconds > GetApMaxSec(apCount, apUpdateTime)) {
+			apCount = AP_MAX;
+			apUpdateTime = Time.realtimeSinceStartup;
+			UpdateAp(AP_MAX);
+			UpdateApUpdateDatetime();
+		}
+		else
+		{
+			apUpdateTime -= (float) lastAwakeInterval.TotalSeconds;
+		}
+		clientObject.CancelLocalNotification(LOCAL_NOTIFICATION_ID);
 	}
 
 	#endregion
