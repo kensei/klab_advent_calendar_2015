@@ -24,8 +24,6 @@ public class SampleClientObject : MonoBehaviour
 	private static extern void _SampleClientPlugin_SetLocalNotification(IntPtr instance, int id, string title, string msg, int interval);
 	[DllImport("__Internal")]
 	private static extern void _SampleClientPlugin_CancelLocalNotification(IntPtr instance, int id);
-	[DllImport("__Internal")]
-	private static extern void _ios8OverRegisterLocalNotificaton();
 #endif
 
 	#endregion
@@ -36,7 +34,6 @@ public class SampleClientObject : MonoBehaviour
 	{
 #if UNITY_EDITOR || UNITY_STANDALONE_OSX
 #elif UNITY_IPHONE
-		_ios8OverRegisterLocalNotificaton();
 		sampleClient = _SampleClientPlugin_Init(name);
 #elif UNITY_ANDROID
 		sampleClient = new AndroidJavaObject("com.klab.ap_refresh_localpush_sample_android.SampleClientPlugin");
