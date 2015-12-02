@@ -31,6 +31,8 @@ public class SampleScene : MonoBehaviour
 
 	void Start()
 	{
+		clientObject.CancelLocalNotification(LOCAL_NOTIFICATION_ID);
+
 		if (apCount >= AP_MAX)
 			return;
 		
