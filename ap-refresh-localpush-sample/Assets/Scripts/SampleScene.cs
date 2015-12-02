@@ -157,7 +157,6 @@ public class SampleScene : MonoBehaviour
 		{
 			apUpdateTime -= (float) lastAwakeInterval.TotalSeconds;
 		}
-		clientObject.CancelLocalNotification(LOCAL_NOTIFICATION_ID);
 	}
 
 	#endregion
