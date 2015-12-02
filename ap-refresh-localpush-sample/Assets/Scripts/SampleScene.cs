@@ -111,6 +111,7 @@ public class SampleScene : MonoBehaviour
 		
 		apCount++;
 		apUpdateTime = Time.realtimeSinceStartup;
+		clientObject.SetLocalNotificationInterval(LOCAL_NOTIFICATION_ID, "klab", "sample", GetApMaxSec(apCount, apUpdateTime, true));
 		UpdateAp(apCount);
 		UpdateApUpdateDatetime();
 	}
